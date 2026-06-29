@@ -151,6 +151,7 @@
         <option value="mileage">Km (laag → hoog)</option>
       </select>
     </div>
+    <div class="ctl"><label for="minscore">Min koopscore</label><input id="minscore" type="range" min="0" max="100" step="5" value="80"><output id="minscore-v">80</output></div>
     <div class="ctl"><label for="minrange">Min bereik</label><input id="minrange" type="range" min="0" max="600" step="25" value="0"><output id="minrange-v">0 km</output></div>
     <div class="ctl"><label for="maxprice">Max prijs</label><input id="maxprice" type="range" min="0" max="100000" step="1000" value="100000"><output id="maxprice-v">-</output></div>
     <div class="chips" id="makes" role="group" aria-label="Merken"></div>
@@ -244,7 +245,7 @@
 
   const makes = [...new Set(cars.map(c=>c.make).filter(Boolean))].sort();
   const sources = [...new Set(cars.map(c=>c.source))].sort();
-  const state = {q:'', sort:'score', minRange:0, maxPrice:pmax, makes:new Set(makes)};
+  const state = {q:'', sort:'score', minRange:0, maxPrice:pmax, minScore:80, makes:new Set(makes)};
 
   const mkWrap = $('#makes');
   const mkButtons = new Map();
@@ -275,9 +276,11 @@
   $('#sort').addEventListener('change', e=>{ state.sort=e.target.value; render(); });
   $('#minrange').addEventListener('input', e=>{ state.minRange=+e.target.value; $('#minrange-v').textContent=km(+e.target.value); render(); });
   $('#maxprice').addEventListener('input', e=>{ state.maxPrice=+e.target.value; $('#maxprice-v').textContent=euro(+e.target.value); render(); });
+  $('#minscore').addEventListener('input', e=>{ state.minScore=+e.target.value; $('#minscore-v').textContent=+e.target.value; render(); });
 
   function passes(c){
     if(!state.makes.has(c.make)) return false;
+    if(state.minScore > 0 && (c.score ?? -1) < state.minScore) return false;
     if((c.range_km||0) < state.minRange) return false;
     if((c.price||0) > state.maxPrice) return false;
     if(state.q){ const h=(c.make+' '+c.model+' '+(c.version||'')).toLowerCase(); if(!h.includes(state.q)) return false; }
