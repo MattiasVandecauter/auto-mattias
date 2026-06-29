@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EV-occasies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ecf0f1; --panel:#ffffff; --ink:#131a1e; --muted:#586469; --faint:#8b979b;
+    --line:#dee4e5; --line-2:#cdd5d6;
+    --accent:#0c6e72; --accent-deep:#083f43; --accent-soft:#e1eeed;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(19,26,30,.05), 0 16px 34px -22px rgba(19,26,30,.32);
+    --display:'Sora', ui-sans-serif, system-ui, sans-serif;
+    --body:'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px; margin:0 auto; padding:0 22px 90px}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-deep)}
+
+  /* masthead */
+  .masthead{padding:44px 0 24px}
+  h1{font-family:var(--display); font-weight:700; font-size:clamp(2rem,5vw,3rem); letter-spacing:-.02em; line-height:1.02; margin:12px 0 0}
+  .readout{margin-top:14px; font-family:var(--mono); font-size:13px; color:var(--muted)}
+  .readout b{color:var(--ink); font-weight:500}
+
+  /* controls */
+  .controls{position:sticky; top:0; z-index:5; margin:0 -22px; padding:14px 22px; display:flex; gap:14px 18px; align-items:center; flex-wrap:wrap;
+    background:color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
+  .search{position:relative; flex:1 1 200px; min-width:160px}
+  .search input{width:100%; padding:9px 12px 9px 32px; border:1px solid var(--line-2); border-radius:10px; background:var(--panel); font-family:var(--body); font-size:14px; color:var(--ink)}
+  .search svg{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--faint)}
+  .ctl{display:flex; align-items:center; gap:9px}
+  .ctl label{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
+  select{font-family:var(--mono); font-size:12px; padding:8px 10px; border:1px solid var(--line-2); border-radius:10px; background:var(--panel); color:var(--ink); cursor:pointer}
+  input[type=range]{accent-color:var(--accent); width:108px}
+  .ctl output{font-family:var(--mono); font-size:12px; color:var(--accent-deep); font-weight:500; min-width:4.4em}
+  .chips{display:flex; gap:6px; flex-wrap:wrap}
+  .chip{font-family:var(--mono); font-size:11px; padding:6px 10px; border-radius:999px; border:1px solid var(--line-2); background:var(--panel); color:var(--muted); cursor:pointer; transition:.15s}
+  .chip.on{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-deep)}
+  .chip--all{border-color:var(--accent); color:var(--accent-deep); font-weight:500}
+  .count{margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--muted); white-space:nowrap}
+
+  /* car list */
+  .cars{display:flex; flex-direction:column; gap:12px; padding-top:22px}
+  .car{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
+    animation:rise .42s cubic-bezier(.2,.7,.3,1) both; animation-delay:calc(var(--i,0)*30ms)}
+  @keyframes rise{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+  .car:hover{border-color:var(--line-2)}
+  .car__head{width:100%; text-align:left; background:none; border:0; font:inherit; color:inherit; cursor:pointer;
+    display:grid; grid-template-columns:158px 1fr auto 22px; gap:18px; align-items:center; padding:14px}
+  .photo{width:158px; height:112px; border-radius:10px; object-fit:cover; background:var(--paper); display:block}
+  .photo--none{display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--faint)}
+  .info{min-width:0}
+  .name{font-family:var(--display); font-weight:600; font-size:1.08rem; letter-spacing:-.01em; margin:0; line-height:1.2}
+  .version{color:var(--muted); font-size:12.5px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:46ch}
+  .specs{margin-top:9px; display:flex; gap:8px 14px; flex-wrap:wrap; font-family:var(--mono); font-size:11.5px; color:var(--muted)}
+  .specs .dot{color:var(--line-2)}
+  .pricecol{text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:9px; white-space:nowrap}
+  .price{font-family:var(--display); font-weight:700; font-size:1.32rem; letter-spacing:-.02em}
+  .koopscore{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.01em}
+  .range{display:flex; align-items:center; gap:8px}
+  .range__km{font-family:var(--mono); font-size:12px; font-weight:500; color:var(--ink)}
+  .battery{position:relative; width:58px; height:22px; border:2px solid var(--line-2); border-radius:5px; padding:2px; background:var(--paper)}
+  .battery::after{content:""; position:absolute; right:-5px; top:50%; transform:translateY(-50%); width:3px; height:9px; background:var(--line-2); border-radius:0 2px 2px 0}
+  .battery__fill{display:block; height:100%; border-radius:2px; transition:width .7s cubic-bezier(.2,.7,.3,1)}
+  .chev{justify-self:center; color:var(--faint); font-size:18px; transition:transform .3s}
+  .car.open .chev{transform:rotate(180deg); color:var(--accent)}
+
+  .car__body{display:grid; grid-template-rows:0fr; transition:grid-template-rows .34s ease}
+  .car.open .car__body{grid-template-rows:1fr}
+  .car__inner{overflow:hidden; min-height:0}
+  .pad{padding:2px 16px 18px; border-top:1px solid var(--line)}
+  .gallery{display:flex; gap:8px; overflow-x:auto; padding:14px 0 4px}
+  .gallery img{height:96px; width:128px; object-fit:cover; border-radius:8px; flex:none}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px 22px; margin-top:6px}
+  .spec{display:flex; flex-direction:column; gap:2px}
+  .spec dt{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint)}
+  .spec dd{margin:0; font-size:13.5px}
+  .go{margin-top:18px; display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:13px; padding:10px 16px; border-radius:10px; background:var(--ink); color:#eef3f3; text-decoration:none; transition:.15s}
+  .go:hover{background:var(--accent-deep)}
+
+  /* koopscore-opbouw */
+  .scorebox{margin:14px 0 4px; border:1px solid var(--line); border-radius:12px; background:var(--paper); overflow:hidden}
+  .scorebox>summary{list-style:none; cursor:pointer; padding:11px 14px; display:flex; align-items:center; gap:10px;
+    font-family:var(--mono); font-size:12.5px; color:var(--muted)}
+  .scorebox>summary::-webkit-details-marker{display:none}
+  .scorebox__badge{font-family:var(--display); font-weight:700; font-size:1rem; letter-spacing:-.01em}
+  .scorebox__hint{margin-left:auto; font-size:11px; color:var(--faint); display:inline-flex; align-items:center; gap:5px}
+  .scorebox__hint .car-chev{transition:transform .25s}
+  .scorebox[open] .scorebox__hint .car-chev{transform:rotate(180deg)}
+  .sb{padding:2px 14px 14px}
+  .sb__intro{font-size:11.5px; color:var(--muted); line-height:1.45; margin:0 0 6px; max-width:62ch}
+  .sb__row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 14px; align-items:baseline; padding:9px 0; border-top:1px solid var(--line)}
+  .sb__head{min-width:0}
+  .sb__label{font-size:13px; font-weight:500; color:var(--ink)}
+  .sb__detail{font-family:var(--mono); font-size:11px; color:var(--muted); margin-left:7px}
+  .sb__calc{justify-self:end; font-family:var(--mono); font-size:11px; color:var(--faint); white-space:nowrap}
+  .sb__calc b{color:var(--accent-deep); font-weight:600}
+  .sb__bar{grid-column:1 / -1; height:7px; margin-top:4px; border-radius:4px; background:var(--panel); border:1px solid var(--line); overflow:hidden}
+  .sb__bar i{display:block; height:100%; border-radius:4px; transition:width .6s cubic-bezier(.2,.7,.3,1)}
+  .sb__total{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:11px; padding-top:11px;
+    border-top:1.5px solid var(--line-2); font-family:var(--mono); font-size:12px; color:var(--muted)}
+  .sb__total b{font-family:var(--display); font-size:1.18rem; letter-spacing:-.02em}
+  @media (max-width:660px){
+    .sb__row{grid-template-columns:1fr; gap:3px 0}
+    .sb__detail{display:block; margin-left:0; margin-top:1px}
+    .sb__calc{justify-self:start; margin-top:2px}
+  }
+
+  .empty{text-align:center; padding:80px 20px; color:var(--muted)}
+  .empty h2{font-family:var(--display); color:var(--ink); margin:0 0 6px}
+  footer{margin-top:38px; padding-top:18px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11.5px; color:var(--faint)}
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:8px}
+
+  @media (max-width:660px){
+    .car__head{grid-template-columns:110px 1fr 20px; grid-template-areas:"ph info chev" "ph price chev"; row-gap:10px}
+    .photo{width:110px; height:84px}
+    .photo, .info{grid-area:auto}
+    .car__head > .photo{grid-area:ph} .info{grid-area:info} .pricecol{grid-area:price; align-items:flex-start; text-align:left} .chev{grid-area:chev}
+    .count{width:100%; margin-left:0}
+  }
+  @media (prefers-reduced-motion:reduce){ .car{animation:none} .car__body,.chev,.battery__fill,.chip{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <span class="eyebrow" id="r-eyebrow">elektrische occasies</span>
+    <h1 id="r-title">EV-occasies</h1>
+    <div class="readout" id="r-readout"></div>
+  </header>
+
+  <div class="controls">
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" type="search" placeholder="Zoek merk of model..." aria-label="Zoeken">
+    </div>
+    <div class="ctl"><label for="sort">Sorteer</label>
+      <select id="sort">
+        <option value="score">Beste koop</option>
+        <option value="range">Bereik (hoog → laag)</option>
+        <option value="price">Prijs (laag → hoog)</option>
+        <option value="year">Bouwjaar (nieuw → oud)</option>
+        <option value="mileage">Km (laag → hoog)</option>
+      </select>
+    </div>
+    <div class="ctl"><label for="minrange">Min bereik</label><input id="minrange" type="range" min="0" max="600" step="25" value="0"><output id="minrange-v">0 km</output></div>
+    <div class="ctl"><label for="maxprice">Max prijs</label><input id="maxprice" type="range" min="0" max="100000" step="1000" value="100000"><output id="maxprice-v">-</output></div>
+    <div class="chips" id="makes" role="group" aria-label="Merken"></div>
+    <span class="count" id="count"></span>
+  </div>
+
+  <section class="cars" id="cars" aria-live="polite"></section>
+  <div class="empty" id="empty" hidden><h2>Geen wagens binnen deze filters</h2><p>Versoepel de zoekterm, het bereik of de prijs.</p></div>
+  <footer id="footer"></footer>
+</div>
+
+<script id="cars-data" type="application/json">
+[
+ {"source":"autoscout","car_id":"s1","make":"Hyundai","model":"IONIQ 5","version":"73 kWh Airco-Navi-Leder","price":24499,"year":2021,"mileage_km":115829,"range_km":481,"power_kw":160,"fuel":"Elektrisch","transmission":"Automatisch","location":"3600 Genk","url":"https://example.com","image_url":"","images":[],"seller":"EV Center","score":61,"score_parts":[{"key":"value","label":"Rijbereik per euro","detail":"19.6 km per €1.000","subscore":83,"weight":36,"points":29.9},{"key":"range","label":"Rijbereik","detail":"481 km","subscore":75,"weight":24,"points":17.9},{"key":"mileage","label":"Kilometerstand","detail":"115.829 km","subscore":24,"weight":22,"points":5.2},{"key":"year","label":"Bouwjaar","detail":"2021","subscore":43,"weight":18,"points":7.7}]},
+ {"source":"gocar","car_id":"s2","make":"CUPRA","model":"Born","version":"82 kWh Warmtepomp Head-up","price":34490,"year":2025,"mileage_km":18000,"range_km":537,"range_estimated":true,"power_kw":170,"fuel":"Elektrisch","transmission":"Automatisch","location":"8900 Ieper","url":"https://example.com","image_url":"","images":[],"seller":"LM Sales","score":80,"score_parts":[{"key":"value","label":"Rijbereik per euro","detail":"15.6 km per €1.000","subscore":54,"weight":36,"points":19.5},{"key":"range","label":"Rijbereik","detail":"537 km (geschat)","subscore":93,"weight":24,"points":22.2},{"key":"mileage","label":"Kilometerstand","detail":"18.000 km","subscore":91,"weight":22,"points":20.0},{"key":"year","label":"Bouwjaar","detail":"2025","subscore":100,"weight":18,"points":18.0}]},
+ {"source":"autohero","car_id":"s3","make":"Nissan","model":"Leaf","version":"40 kWh Acenta 92% SOH","price":15990,"year":2019,"mileage_km":62000,"range_km":270,"range_estimated":true,"power_kw":110,"fuel":"Elektrisch","transmission":"Automatisch","location":"2000 Antwerpen","url":"https://example.com","image_url":"","images":[],"seller":"Auto BE","score":42,"score_parts":[{"key":"value","label":"Rijbereik per euro","detail":"16.9 km per €1.000","subscore":63,"weight":30,"points":19.0},{"key":"range","label":"Rijbereik","detail":"270 km (geschat)","subscore":6,"weight":20,"points":1.3},{"key":"mileage","label":"Kilometerstand","detail":"62.000 km","subscore":61,"weight":20,"points":12.1},{"key":"year","label":"Bouwjaar","detail":"2019","subscore":14,"weight":14,"points":2.0},{"key":"soh","label":"Batterijgezondheid","detail":"92% SOH","subscore":47,"weight":16,"points":7.5}]}
+]
+</script>
+<script id="report-meta" type="application/json">
+{"title":"EV-occasies","subtitle":"elektrisch","generated":"","sources":["autoscout"]}
+</script>
+
+<script>
+(function(){
+  const $ = (s,r=document)=>r.querySelector(s);
+  const cars = JSON.parse($('#cars-data').textContent);
+  const meta = JSON.parse($('#report-meta').textContent);
+
+  const SRC = {autoscout:'AutoScout24 BE','autoscout-nl':'AutoScout24 NL','autoscout-de':'AutoScout24 DE','autoscout-fr':'AutoScout24 FR',gocar:'Gocar.be',autohero:'Autohero',tweedehands:'2dehands',marktplaats:'Marktplaats NL'};
+  const euro = n => n==null ? '?' : '€ ' + n.toLocaleString('nl-BE');
+  const km = n => n==null ? '?' : n.toLocaleString('nl-BE') + ' km';
+  function charge(r){ if(r==null) return 'var(--line-2)'; const t=Math.max(0,Math.min(1,(r-220)/(560-220))); return `hsl(${Math.round(30+t*120)} 68% 44%)`; }
+  const fill = r => r==null ? 0 : Math.max(6, Math.min(100, r/600*100));
+  function scoreCol(s){ if(s==null) return 'var(--muted)'; const t=Math.max(0,Math.min(1,s/100)); return `hsl(${Math.round(28+t*122)} 60% 42%)`; }
+
+  // Uitklapbare opbouw van de koopscore: per factor de deelscore, het gewicht
+  // en de bijdrage, met een balk gekleurd naar de deelscore.
+  function buildScoreBox(c){
+    if(c.score==null || !(c.score_parts&&c.score_parts.length)) return null;
+    const box=document.createElement('details'); box.className='scorebox';
+    const sum=document.createElement('summary');
+    const badge=document.createElement('span'); badge.className='scorebox__badge'; badge.style.color=scoreCol(c.score); badge.textContent='★ '+c.score;
+    const lbl=document.createElement('span'); lbl.textContent='koopscore (0-100)';
+    const hint=document.createElement('span'); hint.className='scorebox__hint';
+    hint.innerHTML='hoe berekend? <span class="car-chev" aria-hidden="true">⌄</span>';
+    sum.append(badge, lbl, hint); box.appendChild(sum);
+
+    const body=document.createElement('div'); body.className='sb';
+    const intro=document.createElement('p'); intro.className='sb__intro';
+    intro.textContent='Gewogen som van waarde-voor-je-geld en kwaliteit. Elke factor krijgt een deelscore 0-100; die telt naar gewicht mee. Hoger is een betere koop.';
+    body.appendChild(intro);
+    c.score_parts.forEach(p=>{
+      const row=document.createElement('div'); row.className='sb__row';
+      const head=document.createElement('div'); head.className='sb__head';
+      const lbl=document.createElement('span'); lbl.className='sb__label'; lbl.textContent=p.label;
+      const det=document.createElement('span'); det.className='sb__detail'; det.textContent=p.detail;
+      head.append(lbl, det);
+      const calc=document.createElement('span'); calc.className='sb__calc';
+      calc.innerHTML=`score ${p.subscore} · weegt ${p.weight}% · <b>+${p.points.toFixed(1)}</b>`;
+      const bar=document.createElement('div'); bar.className='sb__bar';
+      const i=document.createElement('i'); i.style.width=Math.max(2,p.subscore)+'%'; i.style.background=scoreCol(p.subscore); bar.appendChild(i);
+      row.append(head, calc, bar); body.appendChild(row);
+    });
+    const tot=document.createElement('div'); tot.className='sb__total';
+    const tl=document.createElement('span'); tl.textContent='Totale koopscore';
+    const tv=document.createElement('b'); tv.style.color=scoreCol(c.score); tv.textContent=c.score+' / 100';
+    tot.append(tl, tv); body.appendChild(tot);
+    box.appendChild(body);
+    return box;
+  }
+
+  document.title = meta.title || 'EV-occasies';
+  $('#r-title').textContent = meta.title || 'EV-occasies';
+  $('#r-eyebrow').textContent = meta.subtitle || 'elektrische occasies';
+  $('#footer').textContent = `autoscraper · ${cars.length} wagens · bronnen: ${(meta.sources||[]).map(s=>SRC[s]||s).join(', ')}`;
+
+  // readout
+  (function(){
+    const ps = cars.map(c=>c.price).filter(x=>x!=null);
+    const rs = cars.map(c=>c.range_km).filter(x=>x!=null);
+    const lo=a=>Math.min(...a), hi=a=>Math.max(...a);
+    $('#r-readout').innerHTML = ps.length
+      ? `<b>${cars.length}</b> wagens · <b>${euro(lo(ps))}</b>–<b>${euro(hi(ps))}</b> · bereik <b>${lo(rs)}</b>–<b>${hi(rs)} km</b>`
+      : `<b>${cars.length}</b> wagens`;
+  })();
+
+  // price slider bounds from data
+  const prices = cars.map(c=>c.price||0);
+  const pmax = Math.max(43000, ...prices);
+  const mp = $('#maxprice'); mp.max = pmax; mp.value = pmax; $('#maxprice-v').textContent = euro(pmax);
+
+  const makes = [...new Set(cars.map(c=>c.make).filter(Boolean))].sort();
+  const sources = [...new Set(cars.map(c=>c.source))].sort();
+  const state = {q:'', sort:'score', minRange:0, maxPrice:pmax, makes:new Set(makes)};
+
+  const mkWrap = $('#makes');
+  const mkButtons = new Map();
+  const allBtn = document.createElement('button');
+  allBtn.className = 'chip chip--all'; allBtn.type = 'button';
+  function syncAll(){
+    const allOn = makes.every(m => state.makes.has(m));
+    allBtn.classList.toggle('on', allOn);
+    allBtn.textContent = allOn ? 'Alles uit' : 'Alles aan';
+    allBtn.setAttribute('aria-pressed', String(allOn));
+  }
+  allBtn.addEventListener('click', ()=>{
+    const allOn = makes.every(m => state.makes.has(m));
+    if(allOn) state.makes.clear(); else makes.forEach(m=>state.makes.add(m));
+    mkButtons.forEach((b,m)=>{ const on=state.makes.has(m); b.classList.toggle('on',on); b.setAttribute('aria-pressed',String(on)); });
+    syncAll(); render();
+  });
+  mkWrap.appendChild(allBtn);
+  makes.forEach(mk=>{
+    const b=document.createElement('button'); b.className='chip on'; b.type='button'; b.textContent=mk; b.setAttribute('aria-pressed','true');
+    b.addEventListener('click',()=>{ const on=state.makes.has(mk); on?state.makes.delete(mk):state.makes.add(mk); b.classList.toggle('on',!on); b.setAttribute('aria-pressed',String(!on)); syncAll(); render(); });
+    mkButtons.set(mk, b);
+    mkWrap.appendChild(b);
+  });
+  syncAll();
+
+  $('#q').addEventListener('input', e=>{ state.q=e.target.value.trim().toLowerCase(); render(); });
+  $('#sort').addEventListener('change', e=>{ state.sort=e.target.value; render(); });
+  $('#minrange').addEventListener('input', e=>{ state.minRange=+e.target.value; $('#minrange-v').textContent=km(+e.target.value); render(); });
+  $('#maxprice').addEventListener('input', e=>{ state.maxPrice=+e.target.value; $('#maxprice-v').textContent=euro(+e.target.value); render(); });
+
+  function passes(c){
+    if(!state.makes.has(c.make)) return false;
+    if((c.range_km||0) < state.minRange) return false;
+    if((c.price||0) > state.maxPrice) return false;
+    if(state.q){ const h=(c.make+' '+c.model+' '+(c.version||'')).toLowerCase(); if(!h.includes(state.q)) return false; }
+    return true;
+  }
+  function sortList(a){
+    const s=a.slice();
+    if(state.sort==='score') s.sort((x,y)=>(y.score??-1)-(x.score??-1));
+    else if(state.sort==='range') s.sort((x,y)=>(y.range_km||0)-(x.range_km||0));
+    else if(state.sort==='price') s.sort((x,y)=>(x.price||1e9)-(y.price||1e9));
+    else if(state.sort==='year') s.sort((x,y)=>(y.year||0)-(x.year||0));
+    else if(state.sort==='mileage') s.sort((x,y)=>(x.mileage_km||1e9)-(y.mileage_km||1e9));
+    return s;
+  }
+
+  let uid=0;
+  function build(c, idx){
+    const el=document.createElement('article'); el.className='car'; el.style.setProperty('--i', idx);
+    const bid='c'+(++uid);
+    const head=document.createElement('button'); head.className='car__head'; head.type='button';
+    head.setAttribute('aria-expanded','false'); head.setAttribute('aria-controls',bid);
+
+    if(c.image_url){ const im=document.createElement('img'); im.className='photo'; im.loading='lazy'; im.src=c.image_url; im.alt=c.make+' '+c.model; head.appendChild(im); }
+    else { const d=document.createElement('div'); d.className='photo photo--none'; d.textContent='geen foto'; head.appendChild(d); }
+
+    const info=document.createElement('div'); info.className='info';
+    const nm=document.createElement('h3'); nm.className='name'; nm.textContent=(c.make+' '+c.model).trim();
+    info.appendChild(nm);
+    if(c.version){ const v=document.createElement('div'); v.className='version'; v.textContent=c.version; info.appendChild(v); }
+    const sp=document.createElement('div'); sp.className='specs';
+    [c.year, km(c.mileage_km), c.power_kw?c.power_kw+' kW':null, c.location].filter(Boolean).forEach((t,i,arr)=>{
+      const s=document.createElement('span'); s.textContent=t; sp.appendChild(s);
+      if(i<arr.length-1){ const d=document.createElement('span'); d.className='dot'; d.textContent='·'; sp.appendChild(d); }
+    });
+    info.appendChild(sp);
+
+    const pc=document.createElement('div'); pc.className='pricecol';
+    const pr=document.createElement('div'); pr.className='price'; pr.textContent=euro(c.price);
+    const rg=document.createElement('div'); rg.className='range';
+    const bat=document.createElement('span'); bat.className='battery';
+    const bf=document.createElement('span'); bf.className='battery__fill'; bf.style.width=fill(c.range_km)+'%'; bf.style.background=charge(c.range_km);
+    bat.appendChild(bf);
+    const rk=document.createElement('span'); rk.className='range__km'; rk.textContent=c.range_km?(c.range_estimated?'~':'')+c.range_km+' km':'?';
+    rg.append(bat, rk);
+    if(c.score!=null){ const sc=document.createElement('div'); sc.className='koopscore'; sc.style.color=scoreCol(c.score); sc.textContent='★ '+c.score+' koopscore'; pc.appendChild(sc); }
+    pc.append(pr, rg);
+
+    const ch=document.createElement('span'); ch.className='chev'; ch.setAttribute('aria-hidden','true'); ch.textContent='⌄';
+    head.append(info, pc, ch);
+
+    const body=document.createElement('div'); body.className='car__body'; body.id=bid;
+    const inner=document.createElement('div'); inner.className='car__inner';
+    const pad=document.createElement('div'); pad.className='pad';
+    const imgs=(c.images&&c.images.length)?c.images:(c.image_url?[c.image_url]:[]);
+    if(imgs.length){ const g=document.createElement('div'); g.className='gallery'; imgs.slice(0,8).forEach(u=>{ const im=document.createElement('img'); im.loading='lazy'; im.src=u; im.alt=''; g.appendChild(im); }); pad.appendChild(g); }
+    const sb=buildScoreBox(c); if(sb) pad.appendChild(sb);
+    const grid=document.createElement('dl'); grid.className='grid';
+    const rng = c.range_km?(c.range_estimated?'~'+c.range_km+' km (geschat)':c.range_km+' km'):null;
+    const rows=[['Bouwjaar',c.year],['Kilometerstand',km(c.mileage_km)],['Rijbereik',rng],['Vermogen',c.power_kw?c.power_kw+' kW':null],['Transmissie',c.transmission],['Brandstof',c.fuel],['Locatie',c.location],['Verkoper',c.seller],['Bron',SRC[c.source]||c.source]];
+    rows.forEach(([k,v])=>{ if(!v) return; const d=document.createElement('div'); d.className='spec'; const dt=document.createElement('dt'); dt.textContent=k; const dd=document.createElement('dd'); dd.textContent=v; d.append(dt,dd); grid.appendChild(d); });
+    pad.appendChild(grid);
+    if(c.url){ const a=document.createElement('a'); a.className='go'; a.href=c.url; a.target='_blank'; a.rel='noopener'; a.textContent='Bekijk advertentie ↗'; pad.appendChild(a); }
+    inner.appendChild(pad); body.appendChild(inner);
+
+    el.append(head, body); el._car=c;
+    head.addEventListener('click',()=>{ const o=el.classList.toggle('open'); head.setAttribute('aria-expanded', o?'true':'false'); });
+    return el;
+  }
+
+  const list=$('#cars'), empty=$('#empty'), count=$('#count');
+  const els=cars.map((c,i)=>build(c,i)); els.forEach(e=>list.appendChild(e));
+  function render(){
+    const f=sortList(cars.filter(passes));
+    const order=new Map(f.map((c,i)=>[c,i]));
+    els.forEach(e=>{ if(order.has(e._car)){ e.hidden=false; e.style.order=order.get(e._car); } else e.hidden=true; });
+    count.textContent=`${f.length} van ${cars.length} getoond`;
+    empty.hidden=f.length>0;
+  }
+  render();
+})();
+</script>
+</body>
+</html>
