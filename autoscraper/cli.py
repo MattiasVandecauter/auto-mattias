@@ -36,7 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--min-range", type=int, default=300, help="minimaal rijbereik in km (standaard 300)")
     p.add_argument("--max-mileage", type=int, default=None, help="maximale kilometerstand")
     p.add_argument("--min-year", type=int, default=None, help="minimaal bouwjaar")
-    p.add_argument("-n", "--limit", type=int, default=60, help="max aantal autos per bron (standaard 60)")
+    p.add_argument("-n", "--limit", type=int, default=1000, help="max aantal autos per bron (standaard 1000)")
     p.add_argument("-s", "--source", default="dealers",
                    choices=[*sources.available(), "dealers", "all"],
                    help="bron of groep: dealers (standaard, erkende BE-dealers), all (ook NL/DE/FR), of een bronnaam")

@@ -154,5 +154,8 @@ autoscraper/
 
 ## Let op
 
-Voor persoonlijk gebruik met laag volume. Hou `--limit` redelijk en de
-ingebouwde pauzes aan. Geschatte bereiken (~) zijn benaderingen op modelniveau.
+Voor persoonlijk gebruik. `--limit` staat standaard op 1000 (max per bron); in
+de praktijk begrenzen de bronnen zelf via paginering: AutoScout24 ~400 (20
+pagina's), Gocar tot 1000, Autohero het volledige BE-aanbod (~50). Een hoge
+limiet betekent meer pagina's en dus een tragere run door de ingebouwde pauzes.
+Geschatte bereiken (~) zijn benaderingen op modelniveau.
