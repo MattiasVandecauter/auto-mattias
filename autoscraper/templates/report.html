@@ -31,11 +31,21 @@
   .readout b{color:var(--ink); font-weight:500}
 
   /* controls */
-  .controls{position:sticky; top:0; z-index:5; margin:0 -22px; padding:14px 22px; display:flex; gap:14px 18px; align-items:center; flex-wrap:wrap;
+  .controls{position:sticky; top:0; z-index:5; margin:0 -22px; padding:12px 22px;
     background:color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
-  .search{position:relative; flex:1 1 200px; min-width:160px}
+  .bar{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .search{position:relative; flex:1 1 200px; min-width:140px}
   .search input{width:100%; padding:9px 12px 9px 32px; border:1px solid var(--line-2); border-radius:10px; background:var(--panel); font-family:var(--body); font-size:14px; color:var(--ink)}
   .search svg{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--faint)}
+  .ftoggle{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:12px; padding:9px 13px; border:1px solid var(--line-2); border-radius:10px; background:var(--panel); color:var(--ink); cursor:pointer; white-space:nowrap}
+  .ftoggle:hover{border-color:var(--accent)}
+  .fbadge{font-family:var(--mono); font-size:10px; min-width:17px; height:17px; padding:0 4px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:var(--accent); color:#fff}
+  .fchev{color:var(--faint); transition:transform .25s}
+  .controls.open .fchev{transform:rotate(180deg); color:var(--accent)}
+  .filters{display:grid; grid-template-rows:0fr; transition:grid-template-rows .28s ease}
+  .controls.open .filters{grid-template-rows:1fr}
+  .filters__inner{overflow:hidden; min-height:0}
+  .filters__row{display:flex; gap:13px 18px; align-items:center; flex-wrap:wrap; padding-top:14px}
   .ctl{display:flex; align-items:center; gap:9px}
   .ctl label{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
   select{font-family:var(--mono); font-size:12px; padding:8px 10px; border:1px solid var(--line-2); border-radius:10px; background:var(--panel); color:var(--ink); cursor:pointer}
@@ -138,24 +148,35 @@
   </header>
 
   <div class="controls">
-    <div class="search">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="q" type="search" placeholder="Zoek merk of model..." aria-label="Zoeken">
+    <div class="bar">
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Zoek merk of model..." aria-label="Zoeken">
+      </div>
+      <button class="ftoggle" id="ftoggle" type="button" aria-expanded="false" aria-controls="filters">
+        Filters<span class="fbadge" id="fbadge" hidden></span><span class="fchev" aria-hidden="true">⌄</span>
+      </button>
+      <span class="count" id="count"></span>
     </div>
-    <div class="ctl"><label for="sort">Sorteer</label>
-      <select id="sort">
-        <option value="score">Beste koop</option>
-        <option value="range">Bereik (hoog → laag)</option>
-        <option value="price">Prijs (laag → hoog)</option>
-        <option value="year">Bouwjaar (nieuw → oud)</option>
-        <option value="mileage">Km (laag → hoog)</option>
-      </select>
+    <div class="filters" id="filters">
+      <div class="filters__inner">
+        <div class="filters__row">
+          <div class="ctl"><label for="sort">Sorteer</label>
+            <select id="sort">
+              <option value="score">Beste koop</option>
+              <option value="range">Bereik (hoog → laag)</option>
+              <option value="price">Prijs (laag → hoog)</option>
+              <option value="year">Bouwjaar (nieuw → oud)</option>
+              <option value="mileage">Km (laag → hoog)</option>
+            </select>
+          </div>
+          <div class="ctl"><label for="minscore">Min koopscore</label><input id="minscore" type="range" min="0" max="100" step="5" value="80"><output id="minscore-v">80</output></div>
+          <div class="ctl"><label for="minrange">Min bereik</label><input id="minrange" type="range" min="0" max="600" step="25" value="0"><output id="minrange-v">0 km</output></div>
+          <div class="ctl"><label for="maxprice">Max prijs</label><input id="maxprice" type="range" min="0" max="100000" step="1000" value="100000"><output id="maxprice-v">-</output></div>
+          <div class="chips" id="makes" role="group" aria-label="Merken"></div>
+        </div>
+      </div>
     </div>
-    <div class="ctl"><label for="minscore">Min koopscore</label><input id="minscore" type="range" min="0" max="100" step="5" value="80"><output id="minscore-v">80</output></div>
-    <div class="ctl"><label for="minrange">Min bereik</label><input id="minrange" type="range" min="0" max="600" step="25" value="0"><output id="minrange-v">0 km</output></div>
-    <div class="ctl"><label for="maxprice">Max prijs</label><input id="maxprice" type="range" min="0" max="100000" step="1000" value="100000"><output id="maxprice-v">-</output></div>
-    <div class="chips" id="makes" role="group" aria-label="Merken"></div>
-    <span class="count" id="count"></span>
   </div>
 
   <section class="cars" id="cars" aria-live="polite"></section>
@@ -278,6 +299,19 @@
   $('#maxprice').addEventListener('input', e=>{ state.maxPrice=+e.target.value; $('#maxprice-v').textContent=euro(+e.target.value); render(); });
   $('#minscore').addEventListener('input', e=>{ state.minScore=+e.target.value; $('#minscore-v').textContent=+e.target.value; render(); });
 
+  // inklapbare filterbalk
+  const controls=$('.controls'), ftoggle=$('#ftoggle'), fbadge=$('#fbadge');
+  ftoggle.addEventListener('click', ()=>{ const o=controls.classList.toggle('open'); ftoggle.setAttribute('aria-expanded', String(o)); });
+  function activeFilters(){
+    let n=0;
+    if(state.q) n++;
+    if(state.minScore>0) n++;
+    if(state.minRange>0) n++;
+    if(state.maxPrice<pmax) n++;
+    if(!makes.every(m=>state.makes.has(m))) n++;
+    return n;
+  }
+
   function passes(c){
     if(!state.makes.has(c.make)) return false;
     if(state.minScore > 0 && (c.score ?? -1) < state.minScore) return false;
@@ -357,6 +391,8 @@
     const order=new Map(f.map((c,i)=>[c,i]));
     els.forEach(e=>{ if(order.has(e._car)){ e.hidden=false; e.style.order=order.get(e._car); } else e.hidden=true; });
     count.textContent=`${f.length} van ${cars.length} getoond`;
+    const n=activeFilters();
+    fbadge.textContent=n; fbadge.hidden=n===0;
     empty.hidden=f.length>0;
   }
   render();
