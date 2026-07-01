@@ -33,11 +33,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="autoscraper", description="Zoek tweedehands elektrische autos.")
     p.add_argument("--price-from", type=int, default=20000, help="minimumprijs (standaard 20000)")
     p.add_argument("--price-to", type=int, default=43000, help="maximumprijs (standaard 43000)")
-    p.add_argument("--min-range", type=int, default=300, help="minimaal rijbereik in km (standaard 300)")
+    p.add_argument("--min-range", type=int, default=450, help="minimaal rijbereik in km (standaard 300)")
     p.add_argument("--max-mileage", type=int, default=None, help="maximale kilometerstand")
     p.add_argument("--min-year", type=int, default=None, help="minimaal bouwjaar")
     p.add_argument("-n", "--limit", type=int, default=1000, help="max aantal autos per bron (standaard 1000)")
-    p.add_argument("-s", "--source", default="dealers",
+    p.add_argument("-s", "--source", default="all",
                    choices=[*sources.available(), "dealers", "all"],
                    help="bron of groep: dealers (standaard, erkende BE-dealers), all (ook NL/DE/FR), of een bronnaam")
     p.add_argument("-o", "--out", default="output", help="uitvoermap")
