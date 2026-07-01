@@ -137,23 +137,10 @@ Een score 0-100 voor waarde-voor-je-geld. Elke factor levert een deelscore
 onder "hoe berekend?". De opbouw zit ook in `ev.json` (veld `score_parts`),
 niet in `ev.csv`.
 
-## Dagelijks publiceren (GitHub Actions → Pages)
-
-`.github/workflows/daily-report.yml` draait de scraper elke dag (cron 05:00 UTC,
-~07:00 Brussel) op GitHub en publiceert `ev.html` naar GitHub Pages. Zo staat er
-elke ochtend een verse pagina klaar, ook als je eigen pc uit staat:
-**https://mattiasvandecauter.github.io/auto-mattias/**
-
-Let op: GitHub draait vanaf een datacenter-IP, en Gocar (achter Cloudflare)
-blokkeert dat met een 403. De dagelijkse run bevat dus AutoScout24 + Autohero,
-maar geen Gocar. Wil je Gocar erbij, draai dan `./run` lokaal (je thuis-IP wordt
-niet geblokkeerd); Gocar zit dan in je lokale `output/ev.html`.
-
 ## Structuur
 
 ```
 run              # start-script (gebruikt .venv, geeft opties door)
-.github/workflows/daily-report.yml   # dagelijkse GitHub Actions-run → Pages
 autoscraper/
   models.py        # Car dataclass
   http.py          # HTTP-sessie (retries + pauzes)
