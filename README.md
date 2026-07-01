@@ -16,11 +16,13 @@ batterij-bereikmeter en een beste-koop-score. Particuliere kanalen
 | AutoScout24 DE | `autoscout-de` | Duitsland | exact | enkel dealers |
 | AutoScout24 FR | `autoscout-fr` | Frankrijk | geschat | enkel dealers |
 
-Standaard (`--source dealers`) draaien **AutoScout24.be + Gocar.be + Autohero**,
-allemaal gefilterd op erkende/professionele verkopers. AutoScout24 is meteen de
-aggregator van zowat alle Belgische dealervoorraad (ook Cardoen, My-Way e.a.
-publiceren daar); Gocar voegt zijn eigen dealernetwerk toe; Autohero koopt
-wagens op, knapt ze op en verkoopt ze zelf (dus altijd een erkende verkoper).
+Standaard (`--source all`) draaien alle bronnen: de Belgische trio
+**AutoScout24.be + Gocar.be + Autohero** plus AutoScout24 NL/DE/FR, allemaal
+gefilterd op erkende/professionele verkopers. Met `--source dealers` beperk je
+tot enkel de drie Belgische. AutoScout24 is meteen de aggregator van zowat alle
+Belgische dealervoorraad (ook Cardoen, My-Way e.a. publiceren daar); Gocar voegt
+zijn eigen dealernetwerk toe; Autohero koopt wagens op, knapt ze op en verkoopt
+ze zelf (dus altijd een erkende verkoper).
 
 AutoScout24 toont een rijbereik per wagen, maar dat is een door de verkoper
 ingetypt vrij tekstveld en soms onrealistisch (een IONIQ 5 van 710 km is
@@ -49,22 +51,22 @@ pip install -r requirements.txt
 ## Gebruik
 
 ```bash
-# Standaard: erkende BE-dealers (AutoScout24.be + Gocar.be + Autohero)
+# Standaard: alle dealerbronnen (BE-trio + AutoScout24 NL/DE/FR)
 ./run                       # of: python -m autoscraper.cli
 
-# Ook de buurlanden meenemen (AutoScout24 NL/DE/FR, ook enkel dealers)
-./run --source all
+# Enkel de Belgische dealers (AutoScout24.be + Gocar.be + Autohero)
+./run --source dealers
 
 # Eén bron
 ./run --source autohero
 
-# Strakker
+# Strakker (en sneller: minder pagina's per bron)
 ./run --price-from 20000 --price-to 43000 \
-  --min-range 350 --max-mileage 120000 --min-year 2022 --limit 80
+  --min-range 350 --max-mileage 120000 --min-year 2022 --limit 200
 ```
 
 Opties: `--price-from`, `--price-to`, `--min-range`, `--max-mileage`,
-`--min-year`, `--limit` (per bron), `--source` (`dealers` standaard, `all`, of een bronnaam), `--format`.
+`--min-year`, `--limit` (per bron), `--source` (`all` standaard, `dealers`, of een bronnaam), `--format`.
 
 Output in `output/`: `ev.json`, `ev.csv` en **`ev.html`** (open in je browser).
 
@@ -92,13 +94,16 @@ zekerheid).
 ## Rijbereik (`estimate.py`)
 
 `MODELS` is een batterij-bewuste tabel: per model de officiele WLTP-bereiken per
-batterijvariant (`usable_kWh -> km`). `estimate_range` leest de batterij uit de
+batterijvariant (`kWh -> km`). `estimate_range` leest de batterij uit de
 versietekst en kiest de dichtstbijzijnde variant; zonder batterij een
 representatieve default. `FALLBACK_RANGES` vangt zeldzamere modellen op.
+Let op: advertenties vermelden bruto (gross) én netto (usable) kWh door elkaar
+(bv. een Cupra Born "82 kWh" = 77 kWh netto). De varianten zijn zo gekozen dat
+zo'n vermelding niet naar een te hoog bereik leidt.
 
 `plausible_range` beslist welk bereik een AutoScout-wagen krijgt: de door de
 verkoper opgegeven waarde wordt enkel vertrouwd als ze onder elke bovengrens
-valt (een globale max, de fysieke grens `kWh × 9,5`, en `modelschatting × 1,35`).
+valt (een globale max, de fysieke grens `kWh × 9,0`, en `modelschatting × 1,35`).
 Onmogelijke waarden zoals een IONIQ 5 met 710 km vallen zo terug op de schatting
 (~507 km).
 
@@ -106,8 +111,11 @@ Onmogelijke waarden zoals een IONIQ 5 met 710 km vallen zo terug op de schatting
 
 Self-contained, geen server nodig. Elke wagen is een kaart met foto, prijs en
 een batterij-bereikmeter (kleur naar bereik). Klik open voor de fotogalerij, de
-volledige specs en een link naar de advertentie. Bovenaan: zoeken, sorteren
-(standaard **beste koop**), en filteren op bereik, prijs en merk.
+volledige specs en een link naar de advertentie. Bovenaan een compacte balk met
+zoekveld en een inklapbare **Filters**-knop (met een badge voor het aantal
+actieve filters). Uitgeklapt: sorteren (standaard **beste koop**), min koopscore
+(standaard 80, zodat zwakkere koopjes verborgen zijn; sleep naar 0 voor alles),
+en filteren op bereik, prijs en merk.
 
 In het uitgeklapte detail zit een uitklapbaar blok **"hoe berekend?"** dat de
 koopscore openbreekt: per factor de deelscore (0-100), het gewicht en de
@@ -129,9 +137,23 @@ Een score 0-100 voor waarde-voor-je-geld. Elke factor levert een deelscore
 onder "hoe berekend?". De opbouw zit ook in `ev.json` (veld `score_parts`),
 niet in `ev.csv`.
 
+## Dagelijks publiceren (GitHub Actions → Pages)
+
+`.github/workflows/daily-report.yml` draait de scraper elke dag (cron 05:00 UTC,
+~07:00 Brussel) op GitHub en publiceert `ev.html` naar GitHub Pages. Zo staat er
+elke ochtend een verse pagina klaar, ook als je eigen pc uit staat:
+**https://mattiasvandecauter.github.io/auto-mattias/**
+
+Let op: GitHub draait vanaf een datacenter-IP, en Gocar (achter Cloudflare)
+blokkeert dat met een 403. De dagelijkse run bevat dus AutoScout24 + Autohero,
+maar geen Gocar. Wil je Gocar erbij, draai dan `./run` lokaal (je thuis-IP wordt
+niet geblokkeerd); Gocar zit dan in je lokale `output/ev.html`.
+
 ## Structuur
 
 ```
+run              # start-script (gebruikt .venv, geeft opties door)
+.github/workflows/daily-report.yml   # dagelijkse GitHub Actions-run → Pages
 autoscraper/
   models.py        # Car dataclass
   http.py          # HTTP-sessie (retries + pauzes)
